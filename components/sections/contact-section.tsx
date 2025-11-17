@@ -126,15 +126,16 @@ export async function ContactSection() {
           {/* DERECHA: MAPA ARREGLADO */}
           <div className="bg-card border border-primary/20 rounded-lg overflow-hidden neon-border">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7109.671!2d-55.8667!3d-27.3333!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDIwJzAwLjAiUyA1NcKwNTInMDAuMCJX!5e0!3m2!1ses!2spy!4v1234567890"
-              width="100%"
-              height="400"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="grayscale"
-            />
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d262.57042479042224!2d-55.86292244651256!3d-27.331612475584414!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94579500765cb98f%3A0x20c741604062e36a!2sBarberia%20Uppsala!5e1!3m2!1ses-419!2spy!4v1763401296455!5m2!1ses-419!2spy"
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="grayscale"
+              />
+
           </div>
 
         </div>
