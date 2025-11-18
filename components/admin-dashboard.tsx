@@ -17,13 +17,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Calendar, CheckCircle2, XCircle, Clock, LogOut } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 type AppointmentWithDetails = Appointment & {
   barber?: Barber;
   service?: Service;
 };
 
-// 👉 AJUSTÁ ESTOS HORARIOS para que coincidan con los que usa tu formulario de reserva
+// 👉 HORARIOS usados para bloquear todo el día
 const ALL_TIME_SLOTS = [
   '09:00',
   '10:00',
@@ -39,7 +40,6 @@ const ALL_TIME_SLOTS = [
   '20:00',
 ];
 
-
 export function AdminDashboard() {
   const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -48,11 +48,9 @@ export function AdminDashboard() {
   );
   const [filterBarber, setFilterBarber] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [showAllDates, setShowAllDates] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [filterDate, filterBarber]);
-
+  // 🔹 Cargar datos (usa fecha / todas las fechas / barbero)
   const loadData = async () => {
     setLoading(true);
 
@@ -66,9 +64,17 @@ export function AdminDashboard() {
     let query = supabase
       .from('appointments')
       .select('*, barber:barbers(*), service:services(*)')
-      .eq('date', filterDate)
-      .neq('status', 'cancelled') // 👈 NO mostrar turnos cancelados
-      .order('time');
+      .neq('status', 'cancelled'); // no mostrar cancelados
+
+    if (!showAllDates) {
+      // solo la fecha seleccionada
+      query = query.eq('date', filterDate).order('time');
+    } else {
+      // todas las fechas, ordenadas por fecha y hora
+      query = query
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+    }
 
     if (filterBarber !== 'all') {
       query = query.eq('barber_id', filterBarber);
@@ -83,9 +89,14 @@ export function AdminDashboard() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    loadData();
+    // ahora también escucha showAllDates
+  }, [filterDate, filterBarber, showAllDates]);
+
   const updateStatus = async (
     id: string,
-    status: 'pending' | 'completed' | 'cancelled'
+    status: 'pending' | 'completed' | 'cancelled' | 'blocked'
   ) => {
     try {
       const { error } = await supabase
@@ -307,6 +318,8 @@ export function AdminDashboard() {
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
+              disabled={showAllDates}
+              className={showAllDates ? 'opacity-50 cursor-not-allowed' : ''}
             />
           </div>
 
@@ -328,11 +341,30 @@ export function AdminDashboard() {
           </div>
         </div>
 
+        {/* 🔘 Switch para ver todas las fechas */}
+        <div className="mt-4 flex items-center gap-2">
+          <Switch
+            id="showAllDates"
+            checked={showAllDates}
+            onCheckedChange={setShowAllDates}
+          />
+          <label
+            htmlFor="showAllDates"
+            className="text-sm text-muted-foreground cursor-pointer"
+          >
+            Ver todas las reservas (todas las fechas)
+          </label>
+        </div>
+
         {/* 👉 Botones para bloquear / liberar el día */}
         <div className="mt-6 flex flex-col md:flex-row gap-3 md:justify-end">
           <Button
             disabled={
-              loading || !filterDate || !filterBarber || filterBarber === 'all'
+              loading ||
+              showAllDates ||
+              !filterDate ||
+              !filterBarber ||
+              filterBarber === 'all'
             }
             onClick={handleBlockFullDay}
           >
@@ -341,7 +373,11 @@ export function AdminDashboard() {
           <Button
             variant="outline"
             disabled={
-              loading || !filterDate || !filterBarber || filterBarber === 'all'
+              loading ||
+              showAllDates ||
+              !filterDate ||
+              !filterBarber ||
+              filterBarber === 'all'
             }
             onClick={handleUnblockFullDay}
           >
@@ -357,7 +393,11 @@ export function AdminDashboard() {
       ) : appointments.length === 0 ? (
         <div className="text-center py-12 bg-card border border-primary/20 rounded-lg">
           <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">No hay reservas para este día</p>
+          <p className="text-muted-foreground">
+            {showAllDates
+              ? 'No hay reservas registradas'
+              : 'No hay reservas para este día'}
+          </p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -368,12 +408,18 @@ export function AdminDashboard() {
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-1">
                     <span className="text-xl font-bold text-accent">
                       {appointment.time}
                     </span>
                     {getStatusBadge(appointment.status)}
                   </div>
+
+                  {showAllDates && (
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Fecha: {appointment.date}
+                    </p>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <p>
@@ -416,9 +462,7 @@ export function AdminDashboard() {
                     variant={
                       appointment.status === 'completed' ? 'default' : 'outline'
                     }
-                    onClick={() =>
-                      updateStatus(appointment.id, 'completed')
-                    }
+                    onClick={() => updateStatus(appointment.id, 'completed')}
                     className="bg-green-600 hover:bg-green-700 border-green-600"
                   >
                     <CheckCircle2 size={16} className="mr-1" />
