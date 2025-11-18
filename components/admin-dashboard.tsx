@@ -17,14 +17,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Calendar, CheckCircle2, XCircle, Clock, LogOut } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
 
 type AppointmentWithDetails = Appointment & {
   barber?: Barber;
   service?: Service;
 };
 
-// 👉 AJUSTÁ ESTOS HORARIOS para que coincidan con los que usa tu formulario de reserva
+// 👉 Horarios que usás en la web pública
 const ALL_TIME_SLOTS = [
   '09:00',
   '10:00',
@@ -48,16 +47,15 @@ export function AdminDashboard() {
   );
   const [filterBarber, setFilterBarber] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [showAllDates, setShowAllDates] = useState(false);
 
   useEffect(() => {
     loadData();
-    // 👇 importante que escuche también showAllDates
-  }, [filterDate, filterBarber, showAllDates]);
+  }, [filterBarber]);
 
   const loadData = async () => {
     setLoading(true);
 
+    // Barberos para el select
     const { data: barbersData } = await supabase
       .from('barbers')
       .select('*')
@@ -65,21 +63,15 @@ export function AdminDashboard() {
 
     if (barbersData) setBarbers(barbersData);
 
+    // 👉 Traer TODAS las reservas (todas las fechas)
     let query = supabase
       .from('appointments')
       .select('*, barber:barbers(*), service:services(*)')
-      .neq('status', 'cancelled'); // no mostrar cancelados
+      .neq('status', 'cancelled') // no mostrar cancelados
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
 
-    if (!showAllDates) {
-      // solo la fecha seleccionada
-      query = query.eq('date', filterDate).order('time');
-    } else {
-      // todas las fechas, ordenadas por fecha y hora
-      query = query
-        .order('date', { ascending: true })
-        .order('time', { ascending: true });
-    }
-
+    // Filtrar por barbero si se eligió uno
     if (filterBarber !== 'all') {
       query = query.eq('barber_id', filterBarber);
     }
@@ -191,7 +183,7 @@ export function AdminDashboard() {
         date: filterDate,
         time,
         comment: 'Día bloqueado por admin',
-        status: 'blocked', // nuevo estado para distinguir estas reservas
+        status: 'blocked',
       }));
 
       if (rowsToInsert.length === 0) {
@@ -309,14 +301,13 @@ export function AdminDashboard() {
       </div>
 
       <div className="bg-card border border-primary/20 rounded-lg p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Fecha</label>
+            <label className="text-sm font-medium">Fecha (para bloquear)</label>
             <Input
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              disabled={showAllDates}
             />
           </div>
 
@@ -336,24 +327,8 @@ export function AdminDashboard() {
               </SelectContent>
             </Select>
           </div>
-
-          {/* Switch ver todas las fechas */}
-          <div className="flex items-center gap-3 mt-4 md:mt-0">
-            <Switch
-              checked={showAllDates}
-              onCheckedChange={setShowAllDates}
-              id="show-all-dates"
-            />
-            <label
-              htmlFor="show-all-dates"
-              className="text-sm font-medium select-none"
-            >
-              Ver todas las fechas
-            </label>
-          </div>
         </div>
 
-        {/* Botones para bloquear / liberar el día */}
         <div className="mt-6 flex flex-col md:flex-row gap-3 md:justify-end">
           <Button
             disabled={
@@ -383,9 +358,7 @@ export function AdminDashboard() {
         <div className="text-center py-12 bg-card border border-primary/20 rounded-lg">
           <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">
-            {showAllDates
-              ? 'No hay reservas registradas.'
-              : 'No hay reservas para este día.'}
+            No hay reservas registradas.
           </p>
         </div>
       ) : (
@@ -398,11 +371,9 @@ export function AdminDashboard() {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    {/* Si se ven varias fechas, muestro fecha + hora */}
+                    {/* siempre mostramos fecha + hora */}
                     <span className="text-xl font-bold text-accent">
-                      {showAllDates
-                        ? `${appointment.date} - ${appointment.time}`
-                        : appointment.time}
+                      {appointment.date} - {appointment.time}
                     </span>
                     {getStatusBadge(appointment.status)}
                   </div>
