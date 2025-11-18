@@ -32,7 +32,7 @@ export function AboutSection() {
             <span className="text-accent font-semibold">
               Encarnación - Tomás R. Pereira
             </span>
-            , especializada en cortes modernos, fades impecables y color. Nuestro
+            , Especializada en brindarte un asesoramiento previo antes de cada servicio que deseas realizarte. Nuestro
             ambiente combina música, estilo callejero y la mejor vibra para que
             cada visita sea una experiencia única.
           </p>
