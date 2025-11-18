@@ -162,8 +162,8 @@ Reemplaza el iframe de Google Maps con la ubicación exacta en Encarnación
 - Miguel: [@miguel_barb3r_](https://www.instagram.com/miguel_barb3r_)
 
 ### WhatsApp
-- Hugo: +595 976 854267
-- Miguel: +595 993 385530
+- Hugo: +595975103716
+- Miguel: +595975103716
 
 ---
 

@@ -149,8 +149,8 @@ Para galería general (sin barbero específico), usa `NULL` en `barber_id`.
 ## Contacto
 
 - Instagram: [@uppsala_enc](https://www.instagram.com/uppsala_enc)
-- Hugo: [@hug0._mrt](https://www.instagram.com/hug0._mrt) | +595 976 854267
-- Miguel: [@miguel_barb3r_](https://www.instagram.com/miguel_barb3r_) | +595 993 385530
+- Hugo: [@hug0._mrt](https://www.instagram.com/hug0._mrt) | +595975103716
+- Miguel: [@miguel_barb3r_](https://www.instagram.com/miguel_barb3r_) | +595975103716
 
 ## Licencia
 
