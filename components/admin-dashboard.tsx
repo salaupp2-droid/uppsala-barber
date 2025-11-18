@@ -24,7 +24,7 @@ type AppointmentWithDetails = Appointment & {
   service?: Service;
 };
 
-// 👉 HORARIOS usados para bloquear todo el día
+// 👉 AJUSTÁ ESTOS HORARIOS para que coincidan con los que usa tu formulario de reserva
 const ALL_TIME_SLOTS = [
   '09:00',
   '10:00',
@@ -50,7 +50,11 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAllDates, setShowAllDates] = useState(false);
 
-  // 🔹 Cargar datos (usa fecha / todas las fechas / barbero)
+  useEffect(() => {
+    loadData();
+    // 👇 importante que escuche también showAllDates
+  }, [filterDate, filterBarber, showAllDates]);
+
   const loadData = async () => {
     setLoading(true);
 
@@ -89,14 +93,9 @@ export function AdminDashboard() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadData();
-    // ahora también escucha showAllDates
-  }, [filterDate, filterBarber, showAllDates]);
-
   const updateStatus = async (
     id: string,
-    status: 'pending' | 'completed' | 'cancelled' | 'blocked'
+    status: 'pending' | 'completed' | 'cancelled'
   ) => {
     try {
       const { error } = await supabase
@@ -185,7 +184,7 @@ export function AdminDashboard() {
         (time) => !takenTimes.has(time)
       ).map((time) => ({
         barber_id: filterBarber,
-        service_id: null, // Podés usar un servicio por defecto si querés
+        service_id: null,
         client_name: 'Bloqueado',
         client_phone: '',
         client_instagram: '',
@@ -286,7 +285,6 @@ export function AdminDashboard() {
     const badge = badges[status as keyof typeof badges];
 
     if (!badge) {
-      // Por si llega algún estado raro
       return <span className="text-muted-foreground">{status}</span>;
     }
 
@@ -311,7 +309,7 @@ export function AdminDashboard() {
       </div>
 
       <div className="bg-card border border-primary/20 rounded-lg p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div className="space-y-2">
             <label className="text-sm font-medium">Fecha</label>
             <Input
@@ -319,7 +317,6 @@ export function AdminDashboard() {
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
               disabled={showAllDates}
-              className={showAllDates ? 'opacity-50 cursor-not-allowed' : ''}
             />
           </div>
 
@@ -339,32 +336,28 @@ export function AdminDashboard() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Switch ver todas las fechas */}
+          <div className="flex items-center gap-3 mt-4 md:mt-0">
+            <Switch
+              checked={showAllDates}
+              onCheckedChange={setShowAllDates}
+              id="show-all-dates"
+            />
+            <label
+              htmlFor="show-all-dates"
+              className="text-sm font-medium select-none"
+            >
+              Ver todas las fechas
+            </label>
+          </div>
         </div>
 
-        {/* 🔘 Switch para ver todas las fechas */}
-        <div className="mt-4 flex items-center gap-2">
-          <Switch
-            id="showAllDates"
-            checked={showAllDates}
-            onCheckedChange={setShowAllDates}
-          />
-          <label
-            htmlFor="showAllDates"
-            className="text-sm text-muted-foreground cursor-pointer"
-          >
-            Ver todas las reservas (todas las fechas)
-          </label>
-        </div>
-
-        {/* 👉 Botones para bloquear / liberar el día */}
+        {/* Botones para bloquear / liberar el día */}
         <div className="mt-6 flex flex-col md:flex-row gap-3 md:justify-end">
           <Button
             disabled={
-              loading ||
-              showAllDates ||
-              !filterDate ||
-              !filterBarber ||
-              filterBarber === 'all'
+              loading || !filterDate || !filterBarber || filterBarber === 'all'
             }
             onClick={handleBlockFullDay}
           >
@@ -373,11 +366,7 @@ export function AdminDashboard() {
           <Button
             variant="outline"
             disabled={
-              loading ||
-              showAllDates ||
-              !filterDate ||
-              !filterBarber ||
-              filterBarber === 'all'
+              loading || !filterDate || !filterBarber || filterBarber === 'all'
             }
             onClick={handleUnblockFullDay}
           >
@@ -395,8 +384,8 @@ export function AdminDashboard() {
           <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">
             {showAllDates
-              ? 'No hay reservas registradas'
-              : 'No hay reservas para este día'}
+              ? 'No hay reservas registradas.'
+              : 'No hay reservas para este día.'}
           </p>
         </div>
       ) : (
@@ -408,18 +397,15 @@ export function AdminDashboard() {
             >
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    {/* Si se ven varias fechas, muestro fecha + hora */}
                     <span className="text-xl font-bold text-accent">
-                      {appointment.time}
+                      {showAllDates
+                        ? `${appointment.date} - ${appointment.time}`
+                        : appointment.time}
                     </span>
                     {getStatusBadge(appointment.status)}
                   </div>
-
-                  {showAllDates && (
-                    <p className="text-xs text-muted-foreground mb-2">
-                      Fecha: {appointment.date}
-                    </p>
-                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     <p>
@@ -442,7 +428,9 @@ export function AdminDashboard() {
                     </p>
                     {appointment.client_instagram && (
                       <p>
-                        <span className="text-muted-foreground">Instagram:</span>{' '}
+                        <span className="text-muted-foreground">
+                          Instagram:
+                        </span>{' '}
                         {appointment.client_instagram}
                       </p>
                     )}
