@@ -14,13 +14,13 @@ export async function ContactSection() {
     {
       id: 1,
       name: "Hugo",
-      whatsapp: "+595993385530",
+      whatsapp: "+595975103716",
       instagram: "https://instagram.com/hug0._mrt",
     },
     {
       id: 2,
       name: "Miguel",
-      whatsapp: "+595976854267",
+      whatsapp: "+595975103716",
       instagram: "https://instagram.com/miguel_barb3r_",
     }
   ];
